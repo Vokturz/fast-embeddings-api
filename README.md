@@ -15,6 +15,11 @@ MODEL=BAAI/bge-base-en-v1.5 python -m src.server
 
 By default, it runs in `0.0.0.0:8000`. You can change this by defining variables **HOST** and/or **PORT**.
 
+## Docker image
+You can run the application using Docker with the following command:
+```bash
+docker run -it --gpus all -p 8000:8000 -e MODEL=BAAI/bge-base-en-v1.5 vokturz/fast-embeddings-api
+```
 
 ## MTEB Benchmark
 You can check the best embeddings model on https://huggingface.co/spaces/mteb/leaderboard
