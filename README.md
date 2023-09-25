@@ -5,7 +5,7 @@ An OpenAI-like API for Massive Text Embeddings using FastAPI.
 ## How to run
 A CUDA GPU is mandatory. Install the requirements:
 ```bash
-pip install -r requirements
+pip install -r requirements.txt
 ```
 
 Start the server by defining a model with **MODEL** variable:
