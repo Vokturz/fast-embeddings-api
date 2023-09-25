@@ -161,4 +161,5 @@ cython_debug/
 
 *.json
 *.txt
+!requirements.txt
 *.onnx
