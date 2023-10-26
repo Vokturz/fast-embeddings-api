@@ -1,5 +1,5 @@
 uvicorn==0.23.2
 torch==2.0.1
-transformers==4.33.2
+transformers @ git+https://github.com/huggingface/transformers
 fastapi==0.103.1
-optimum[onnxruntime-gpu]==1.13.2
+optimum[onnxruntime-gpu] @ git+https://github.com/huggingface/optimum.git

@@ -39,17 +39,21 @@ class CreateEmbeddingResponse(BaseModel):
 
 tokenizer = None
 model = None
+device = None
 
-ort_model_output = "model_auto_opt_O4"
 
-def load_model(model_name):
-    global tokenizer, model
+def load_model(model_name, _device):
+    global tokenizer, model, device
+    device = _device
+    provider = "CUDAExecutionProvider" if device == "cuda" else "CPUExecutionProvider"
+    optimize = "O4" if device == "cuda" else "O3"
+    ort_model_output = f"model_auto_opt_{optimize}"
     print(f"Loading {model_name} model and exporting it to ONNX..")
-    main_export(model_name_or_path=model_name, task="feature-extraction", provider="CUDAExecutionProvider", 
-                optimize="O4", output=ort_model_output, device="cuda", framework="pt")
+    main_export(model_name_or_path=model_name, task="feature-extraction", provider=provider, 
+                optimize=optimize, output=ort_model_output, device=device, framework="pt")
 
     tokenizer = AutoTokenizer.from_pretrained(ort_model_output)
-    model = ORTModelForFeatureExtraction.from_pretrained(ort_model_output, provider="CUDAExecutionProvider")
+    model = ORTModelForFeatureExtraction.from_pretrained(ort_model_output, provider=provider)
 
 
 def _create_embedding(input: Union[str, List[str]]):
@@ -57,7 +61,7 @@ def _create_embedding(input: Union[str, List[str]]):
     if not isinstance(input, list):
             input = [input]
             
-    encoded_input = tokenizer(input, padding=True, truncation=True, return_tensors='pt').to("cuda")
+    encoded_input = tokenizer(input, padding=True, truncation=True, return_tensors='pt').to(device)
 
     with torch.no_grad():
         sentence_embeddings = model(**encoded_input)[0][:, 0]
