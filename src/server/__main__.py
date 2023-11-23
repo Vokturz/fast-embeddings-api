@@ -5,9 +5,13 @@ from src.server.app import create_app, load_model
 if __name__ == "__main__":
     try:
         model_name = os.environ["MODEL"]
-        load_model(model_name)
-    except:
-        raise Exception("MODEL environment variable not set")
+    except Exception as e:
+        raise Exception("MODEL environment variable not set", e)
+    
+    device = os.getenv("DEVICE", "cpu")
+    _reload = os.getenv("RELOAD", False)
+    load_model(model_name, device, _reload)
+
     
     print("\nStarting server...")
     app = create_app()

@@ -7,6 +7,8 @@ from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from optimum.exporters.onnx import main_export
+from shutil import rmtree
+import os
 
 router = APIRouter()
 def create_app():
@@ -40,18 +42,30 @@ class CreateEmbeddingResponse(BaseModel):
 tokenizer = None
 model = None
 device = None
+provider = None
 
-
-def load_model(model_name, _device):
-    global tokenizer, model, device
+def save_model(model_name, _device, _reload=False):
+    global device, provider
     device = _device
     provider = "CUDAExecutionProvider" if device == "cuda" else "CPUExecutionProvider"
     optimize = "O4" if device == "cuda" else "O3"
     ort_model_output = f"model_auto_opt_{optimize}"
-    print(f"Loading {model_name} model and exporting it to ONNX..")
-    main_export(model_name_or_path=model_name, task="feature-extraction", provider=provider, 
-                optimize=optimize, output=ort_model_output, device=device, framework="pt")
+    model_exists = os.path.exists(ort_model_output) and os.path.exists(ort_model_output + "/config.json")
+    if (model_exists and _reload) or not model_exists:
+        if model_exists:
+            rmtree(ort_model_output)
+        print(f"Loading {model_name} model and exporting it to ONNX..")
+        _model = ORTModelForFeatureExtraction.from_pretrained(model_name, provider=provider, export=True,
+                                                             cache_dir="/tmp")
+        _model.save_pretrained(ort_model_output)
+    elif (model_exists and not _reload):
+        print(f"Model {model_name} already exists! use RELOAD=True to reload")
+    return "./" + ort_model_output
 
+def load_model(model_name, _device, _reload):
+    global tokenizer, model
+    ort_model_output = save_model(model_name, _device, _reload=_reload)
+    print(f"Loading {model_name} model from {ort_model_output}..")
     tokenizer = AutoTokenizer.from_pretrained(ort_model_output)
     model = ORTModelForFeatureExtraction.from_pretrained(ort_model_output, provider=provider)
 

@@ -15,6 +15,7 @@ MODEL=BAAI/bge-base-en-v1.5 DEVICE=cuda python -m src.server
 
 By default, it runs in `0.0.0.0:8000`. You can change this by defining variables **HOST** and/or **PORT**.
 
+The first time you run the server it will create a `model_auto_opt_OX` folder, where `X=3` or `4` depending on the device. This folder contains the optimized ONNX version of your model. For the next runs, it will use that optimized model. If you want to regenerate the folder, you can use the variable **RELOAD=True**
 ## Docker image
 You can run the application using Docker with the following command:
 ```bash
